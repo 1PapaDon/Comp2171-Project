@@ -28,6 +28,7 @@ class VisitService:
         status: Optional[str] = None,
         school_id: Optional[int] = None,
         visit_date: Optional[date] = None,
+        sort_by: Optional[str] = None,
     ) -> List[Visit]:
         """
         Return visits filtered by any combination of status, school, or date.
@@ -42,7 +43,14 @@ class VisitService:
         if visit_date:
             query = query.filter(Visit.visit_date == visit_date)
 
-        return query.order_by(Visit.visit_date.desc()).all()
+        if sort_by == "school":
+            query = query.join(School).order_by(School.name, Visit.visit_date.desc())
+        elif sort_by == "status":
+            query = query.order_by(Visit.status, Visit.visit_date.desc())
+        else:
+            query = query.order_by(Visit.visit_date.desc())
+
+        return query.all()
 
     @staticmethod
     def has_conflict(visit_date: date, visit_time: str) -> bool:
@@ -80,5 +88,12 @@ class VisitService:
     def mark_completed(visit: Visit) -> Visit:
         """Mark a visit as completed."""
         visit.status = "Completed"
+        db.session.commit()
+        return visit
+
+    @staticmethod
+    def mark_canceled(visit: Visit) -> Visit:
+        """Mark a visit as canceled."""
+        visit.status = "Canceled"
         db.session.commit()
         return visit

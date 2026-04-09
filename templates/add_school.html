@@ -37,15 +37,15 @@
     {% endif %}
     <br><br>
 
-    <label>Contact Phone</label><br>
-    <input type="text" name="contact_phone" style="width:500px;">
+    <label>Contact Phone Number (Required)</label><br>
+    <input type="tel" name="contact_phone" value="{{ form_data.contact_phone }}" style="width:500px;">
     {% if errors.contact_phone %}
         <small style="color:red;">{{ errors.contact_phone }}</small>
     {% endif %}
     <br><br>
 
-    <label>Contact Email</label><br>
-    <input type="text" name="contact_email" style="width:500px;">
+    <label>Contact Email (Required)</label><br>
+    <input type="email" name="contact_email" value="{{ form_data.contact_email }}" style="width:500px;">
     {% if errors.contact_email %}
         <small style="color:red;">{{ errors.contact_email }}</small>
     {% endif %}
@@ -53,7 +53,7 @@
 
     <!-- Numbers -->
     <label>Capacity</label><br>
-    <input type="number" name="capacity" style="width:500px;">
+    <input type="number" name="capacity" min="1" value="{{ form_data.capacity }}" style="width:500px;">
     {% if errors.capacity %}
         <small style="color:red;">{{ errors.capacity }}</small>
     {% endif %}

@@ -159,23 +159,39 @@ def delete_school(school_id):
 @app.route('/visits')
 @login_required
 def list_visits():
-    """Display all visits with optional filtering by status, school, or date (Feature 5)."""
+    """Display all visits with optional filtering by status, school, date, or sort order (Feature 5)."""
     status_filter = request.args.get("status", "").strip()
     school_filter = request.args.get("school_id", "").strip()
     date_filter = request.args.get("date", "").strip()
+    sort_by = request.args.get("sort_by", "date").strip()
 
     parsed_date = ReportService.parse_date(date_filter) if date_filter else None
     parsed_school_id = ReportService.parse_int(school_filter) if school_filter else None
 
-    visits = VisitService.get_filtered_visits(
-        status=status_filter or None,
-        school_id=parsed_school_id,
-        visit_date=parsed_date,
-    )
     schools = SchoolService.get_all_schools()
+    try:
+        visits = VisitService.get_filtered_visits(
+            status=status_filter or None,
+            school_id=parsed_school_id,
+            visit_date=parsed_date,
+            sort_by=sort_by,
+        )
+    except Exception:
+        flash(
+            "A system error occurred while retrieving scheduled visits. Please try again later.",
+            "error",
+        )
+        visits = []
 
-    return render_template('visits/list.html', visits=visits, schools=schools,
-                           status_filter=status_filter, school_filter=school_filter)
+    return render_template(
+        'visits/list.html',
+        visits=visits,
+        schools=schools,
+        status_filter=status_filter,
+        school_filter=school_filter,
+        date_filter=date_filter,
+        sort_by=sort_by,
+    )
 
 
 @app.route('/visits/schedule', methods=['GET', 'POST'])
@@ -216,6 +232,32 @@ def delete_visit(visit_id):
     return redirect(url_for('list_visits'))
 
 
+@app.route('/visits/<int:visit_id>/complete', methods=['POST'])
+@login_required
+def complete_visit(visit_id):
+    """Mark a scheduled visit as completed."""
+    visit = VisitService.get_visit_or_404(visit_id)
+    if visit.status != 'Scheduled':
+        flash('Only scheduled visits can be marked completed.', 'error')
+    else:
+        VisitService.mark_completed(visit)
+        flash('Visit marked as completed.', 'success')
+    return redirect(url_for('list_visits'))
+
+
+@app.route('/visits/<int:visit_id>/cancel', methods=['POST'])
+@login_required
+def cancel_visit(visit_id):
+    """Mark a scheduled visit as canceled."""
+    visit = VisitService.get_visit_or_404(visit_id)
+    if visit.status != 'Scheduled':
+        flash('Only scheduled visits can be canceled.', 'error')
+    else:
+        VisitService.mark_canceled(visit)
+        flash('Visit canceled successfully.', 'success')
+    return redirect(url_for('list_visits'))
+
+
 # ========================================
 # REPORT ROUTES  (Feature 4)
 # ========================================
@@ -233,12 +275,35 @@ def generate_report():
     school_id = ReportService.parse_int(request.form.get("school_id", ""))
     partner_id = ReportService.parse_int(request.form.get("partner_id", ""))
 
-    summary = report_service.build_summary(report_type, start_date, end_date, school_id, partner_id)
-    output_path = report_service.write_csv(summary, report_type)
+    try:
+        summary, has_data = report_service.build_summary(
+            report_type, start_date, end_date, school_id, partner_id
+        )
 
-    flash("Report generated successfully.", "success")
-    return render_template("report_result.html", summary=summary,
-                           report_file_name=output_path.name, report_type=report_type)
+        if not has_data:
+            flash("No data available for the selected criteria.", "error")
+            return render_template(
+                "report_result.html",
+                summary=summary,
+                has_data=False,
+                report_type=report_type,
+            )
+
+        output_path = report_service.write_csv(summary, report_type)
+        flash("Report generated successfully.", "success")
+        return render_template(
+            "report_result.html",
+            summary=summary,
+            report_file_name=output_path.name,
+            report_type=report_type,
+            has_data=True,
+        )
+    except Exception:
+        flash(
+            "A system error occurred during report generation. Please try again later.",
+            "error",
+        )
+        return render_template("report_form.html")
 
 
 @app.route("/reports/download/<filename>")

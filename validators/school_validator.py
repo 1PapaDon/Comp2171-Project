@@ -84,17 +84,21 @@ class SchoolValidator:
             self.errors["address"] = "Address is required."
         if not self.contact_person:
             self.errors["contact_person"] = "Contact person is required."
+        if not self.contact_phone:
+            self.errors["contact_phone"] = "Contact phone number is required."
+        if not self.contact_email:
+            self.errors["contact_email"] = "Contact email is required."
 
     def _validate_capacity(self):
-        """Validate that capacity is a non-negative integer if provided."""
+        """Validate that capacity is an integer and at least 1 if provided."""
         raw = self._form.get("capacity", "").strip()
         if raw == "":
             self.capacity = None
             return
         try:
             self.capacity = int(raw)
-            if self.capacity < 0:
-                self.errors["capacity"] = "Capacity cannot be negative."
+            if self.capacity < 1:
+                self.errors["capacity"] = "Capacity cannot be less than 1."
         except ValueError:
             self.errors["capacity"] = "Capacity must be a whole number."
 
