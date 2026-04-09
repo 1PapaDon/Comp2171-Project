@@ -29,10 +29,11 @@ class ReportService:
         end_date: Optional[date] = None,
         school_id: Optional[int] = None,
         partner_id: Optional[int] = None,
-    ) -> Dict[str, Any]:
+    ) -> (Dict[str, Any], bool):
         """
         Query the visits table and return summary statistics.
         Filters are applied based on report_type and the provided parameters.
+        Returns a tuple of (summary, has_data).
         """
         query = Visit.query
 
@@ -49,14 +50,14 @@ class ReportService:
             query = query.filter(Visit.school_id == school_id)
 
         visits = query.all()
+        has_data = len(visits) > 0
 
         return {
-            "number_of_schools": len({v.school_id for v in visits}),
-            "number_of_visits": len(visits),
-            "total_students": 0,   # placeholder — column not yet tracked
-            "total_teachers": 0,
-            "total_parents": 0,
-        }
+            "Number of schools": len({v.school_id for v in visits}),
+            "Number of visits": len(visits),
+            "Total students": 0,   # placeholder — column not yet tracked
+            "Total teachers": 0,
+        }, has_data
 
     def write_csv(self, summary: Dict[str, Any], report_type: str) -> Path:
         """

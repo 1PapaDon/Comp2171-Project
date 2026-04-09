@@ -39,15 +39,15 @@
     <br><br>
 
     <!-- Contact phone number -->
-    <label>Contact Phone</label><br>
-    <input type="text" name="contact_phone" value="{{ form_data.contact_phone }}" style="width:300px;">
+    <label>Contact Phone Number (Required)</label><br>
+    <input type="tel" name="contact_phone" value="{{ form_data.contact_phone }}" style="width:300px;">
     {% if errors.contact_phone %}
         <small style="color:red;">{{ errors.contact_phone }}</small>
     {% endif %}
     <br><br>
 
     <!-- Email field -->
-    <label>Contact Email</label><br>
+    <label>Contact Email (Required)</label><br>
     <input type="email" name="contact_email" value="{{ form_data.contact_email }}" style="width:300px;">
     {% if errors.contact_email %}
         <small style="color:red;">{{ errors.contact_email }}</small>
@@ -56,7 +56,7 @@
 
     <!-- Capacity field -->
     <label>Capacity</label><br>
-    <input type="number" name="capacity" value="{{ form_data.capacity }}" style="width:300px;">
+    <input type="number" name="capacity" min="1" value="{{ form_data.capacity }}" style="width:300px;">
     {% if errors.capacity %}
         <small style="color:red;">{{ errors.capacity }}</small>
     {% endif %}
