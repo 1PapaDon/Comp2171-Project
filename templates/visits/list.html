@@ -62,6 +62,7 @@
                 <thead class="table-light">
                     <tr>
                         <th>Date</th>
+                        <th>Time</th>
                         <th>School</th>
                         <th>Status</th>
                         <th>Actions</th>
@@ -71,6 +72,7 @@
                     {% for visit in visits %}
                     <tr>
                         <td>{{ visit.visit_date }}</td>
+                        <td>{{ visit.visit_time }}</td>
                         <td>{{ visit.school.name }}</td>
                         <td>{{ visit.status }}</td>
                         <td>
